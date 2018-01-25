@@ -178,7 +178,7 @@ public class CanvasView extends View {
         canvas.drawCircle(0, 0, dp2px(25), tmpPaint);
 //            tmpPaint.setStyle(Paint.Style.STROKE);
         tmpPaint.setColor(Color.BLUE);
-        canvas.rotate(75, 0f, 0f);
+        canvas.rotate(55, 0f, 0f);
         canvas.drawCircle(0, dp2px(5), dp2px(2), tmpPaint);
         canvas.drawLine(0, dp2px(5), 0, dp2px(-65), paint);
     }
