@@ -5,14 +5,14 @@ import android.os.Bundle;
 
 import com.example.jiek.canvasdemo.view.CanvasView;
 
-import static com.example.jiek.canvasdemo.view.CanvasView.DrawType.DRAW_COMPASS;
+import static com.example.jiek.canvasdemo.view.CanvasView.DrawType.DRAW_CLOCK;
 
 public class MainActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(new CanvasView(this, DRAW_COMPASS));
+        setContentView(new CanvasView(this, DRAW_CLOCK));
     }
 }
 

@@ -16,8 +16,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
-import static com.example.jiek.canvasdemo.view.CanvasView.DrawType.DRAW_COMPASS;
+import static com.example.jiek.canvasdemo.view.CanvasView.DrawType.DRAW_CLOCK;
 import static com.example.jiek.canvasdemo.view.CanvasView.DrawType.DRAW_POINTS;
 
 /**
@@ -76,26 +78,40 @@ public class CanvasView extends View {
     }
 
     public enum DrawType {
-        DRAW_POINTS, DRAW_COMPASS,
+        DRAW_POINTS, DRAW_CLOCK,
     }
 
     Paint paint;
     private ArrayList<PointF> graphics = new ArrayList<PointF>();
-    DrawType mDrawType = DRAW_COMPASS;
+    DrawType mDrawType = DRAW_CLOCK;
 
     public CanvasView(Context context) {
         super(context);
-        paint = new Paint(); //设置一个笔刷大小是3sp的红色的画笔
-        paint.setColor(Color.RED);
-        paint.setStrokeJoin(Paint.Join.ROUND);
-        paint.setStrokeCap(Paint.Cap.ROUND);
-        paint.setStrokeWidth(getResources().getDisplayMetrics().scaledDensity * 3);
+        initPaint();
     }
 
     public CanvasView(Context context, DrawType mDrawType) {
         this(context);
         this.mDrawType = mDrawType;
+        if (mDrawType == DRAW_CLOCK) {
+            new Timer().schedule(timerTask, 1000, 1000);
+        }
     }
+
+    int second = 25;
+    TimerTask timerTask = new TimerTask() {
+        @Override
+        public void run() {
+            second += 1;
+            second %= 60;
+            CanvasView.this.post(new Runnable() {
+                @Override
+                public void run() {
+                    invalidate();
+                }
+            });
+        }
+    };
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -114,8 +130,8 @@ public class CanvasView extends View {
             case DRAW_POINTS:
                 drawDragPoint(canvas);
                 break;
-            case DRAW_COMPASS:
-                drawCompass(canvas);
+            case DRAW_CLOCK:
+                drawClock(canvas);
                 break;
             default:
                 break;
@@ -136,31 +152,56 @@ public class CanvasView extends View {
         return (int) getResources().getDisplayMetrics().scaledDensity * value;
     }
 
-    private void drawCompass(Canvas canvas) {
+    private void initPaint() {
+        paint = new Paint(); //设置一个笔刷大小是3sp的红色的画笔
+        paint.setColor(Color.RED);
+        paint.setStrokeJoin(Paint.Join.ROUND);
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        paint.setStrokeWidth(dp2px(1));
+    }
+
+    private void drawClock(Canvas canvas) {
+        /**
+         * 画布中心点
+         */
+        int canvasX = canvas.getWidth() / 2, canvasY = canvas.getHeight() / 2;
+
+        /**
+         * 大圆半径
+         */
+        int bigCircleRadius = dp2px(100);
+        /**
+         * 画布中心点偏移
+         */
+        canvas.translate(canvasX, canvasY);
+        canvas.save();
+
         paint.setAntiAlias(true);
         paint.setStyle(Paint.Style.STROKE);
-        canvas.translate(canvas.getWidth() / 2, dp2px(200)); //将位置移动画纸的坐标点:150,150
-        canvas.drawCircle(0, 0, dp2px(100), paint); //画圆圈
+        canvas.drawCircle(0, 0, bigCircleRadius, paint); //画圆圈
 
         //使用path绘制路径文字
-        canvas.save();
-        canvas.translate(dp2px(-75), dp2px(-75));
         Path path = new Path();
-        path.addArc(new RectF(0, 0, dp2px(150), dp2px(150)), dp2px(-180), dp2px(180));
-        Paint citePaint = new Paint(paint);
-        citePaint.setTextSize(sp2px(14));
-        citePaint.setStrokeWidth(dp2px(1));
-        citePaint.setStyle(Paint.Style.FILL);
-        canvas.drawTextOnPath("https://www.gitbook.com/@jiek", path, sp2px(16), 0, citePaint);
-        canvas.restore();
+        path.addArc(new RectF(0, 0, dp2px(150), dp2px(150)), -180, 359); //X轴正侧为0度，sweepAngle是扫过角度
+        Paint sitePaint = new Paint(paint);
+        sitePaint.setTextSize(sp2px(14));
+        sitePaint.setStyle(Paint.Style.FILL);
+        sitePaint.setStrokeWidth(dp2px(1));
+        canvas.translate(dp2px(-75), dp2px(-75));//中心点向左上角移动
+        canvas.drawTextOnPath("https://www.gitbook.com/@jiek", path, sp2px(16), 0, sitePaint);
+
+//        sitePaint.setStyle(Paint.Style.STROKE);
+//        canvas.drawPath(path, sitePaint);
+        canvas.restore();//恢复到save时的状态
 
         Paint tmpPaint = new Paint(paint); //小刻度画笔对象
-        tmpPaint.setStrokeWidth(dp2px(1));
         tmpPaint.setTextSize(sp2px(12));
+        tmpPaint.setStyle(Paint.Style.FILL);
+        tmpPaint.setStrokeWidth(dp2px(1));
 
         float y = dp2px(100);
         int count = 60; //总刻度数
-
+        canvas.rotate(360 / 60 * 35, 0f, 0f); //旋转画纸
         for (int i = 0; i < count; i++) {
             if (i % 5 == 0) {
                 canvas.drawLine(0f, y, 0, y + dp2px(12), paint);
@@ -175,11 +216,14 @@ public class CanvasView extends View {
         //绘制指针
         tmpPaint.setColor(Color.GRAY);
         tmpPaint.setStrokeWidth(dp2px(1));
+        tmpPaint.setStyle(Paint.Style.STROKE);
         canvas.drawCircle(0, 0, dp2px(25), tmpPaint);
-//            tmpPaint.setStyle(Paint.Style.STROKE);
+
         tmpPaint.setColor(Color.BLUE);
-        canvas.rotate(55, 0f, 0f);
-        canvas.drawCircle(0, dp2px(5), dp2px(2), tmpPaint);
-        canvas.drawLine(0, dp2px(5), 0, dp2px(-65), paint);
+
+        canvas.rotate(second % 60 * 6, 0f, 0f);
+        canvas.drawCircle(0, dp2px(-45), dp2px(4), tmpPaint);
+        canvas.drawLine(0, dp2px(15), 0, dp2px(-70), paint);
+        canvas.drawCircle(0, dp2px(0), dp2px(2), tmpPaint);
     }
 }
