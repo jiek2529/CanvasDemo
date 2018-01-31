@@ -161,6 +161,7 @@ public class CanvasView extends View {
     }
 
     private void drawClock(Canvas canvas) {
+
         /**
          * 画布中心点
          */
@@ -174,6 +175,7 @@ public class CanvasView extends View {
          * 画布中心点偏移
          */
         canvas.translate(canvasX, canvasY);
+        canvas.rotate(360 / 60 * 35);
         canvas.save();
 
         paint.setAntiAlias(true);
@@ -182,7 +184,7 @@ public class CanvasView extends View {
 
         //使用path绘制路径文字
         Path path = new Path();
-        path.addArc(new RectF(0, 0, dp2px(150), dp2px(150)), -180, 359); //X轴正侧为0度，sweepAngle是扫过角度
+        path.addArc(new RectF(0, 0, dp2px(150), dp2px(150)), -30, 359); //X轴正侧为0度，sweepAngle是扫过角度
         Paint sitePaint = new Paint(paint);
         sitePaint.setTextSize(sp2px(14));
         sitePaint.setStyle(Paint.Style.FILL);
@@ -201,7 +203,7 @@ public class CanvasView extends View {
 
         float y = dp2px(100);
         int count = 60; //总刻度数
-        canvas.rotate(360 / 60 * 35, 0f, 0f); //旋转画纸
+//        canvas.rotate(360 / 60 * 35, 0f, 0f); //旋转画纸
         for (int i = 0; i < count; i++) {
             if (i % 5 == 0) {
                 canvas.drawLine(0f, y, 0, y + dp2px(12), paint);
